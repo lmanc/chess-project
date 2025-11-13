@@ -1,0 +1,97 @@
+line-length = 100
+indent-width = 4
+target-version = "py314"
+
+[format]
+indent-style = "space"
+quote-style = "single"
+line-ending = "lf"
+skip-magic-trailing-comma = false
+
+[lint]
+select = [
+    "A",     # flake8-builtins
+    "ANN",   # flake8-annotations
+    "ARG",   # flake8-unused-arguments
+    "ASYNC", # flake8-async
+    "B",     # flake8-bugbear
+    "BLE",   # flake8-blind-except
+    "C4",    # flake8-comprehensions
+    "C90",   # mccabe
+    "COM",   # flake8-commas
+    "D",     # pydocstyle
+    "DOC",   # pydoclint
+    "DTZ",   # flake8-datetimez
+    "E",     # pycodestyle errors
+    "ERA",   # eradicate
+    "EM",    # flake8-errmsg
+    "F",     # pyflakes
+    "FA",    # flake8-future-annotations
+    "FAST",  # FastAPI
+    "FBT",   # flake8-boolean-trap
+    "FIX",   # flake8-fixme
+    "FLY",   # flynt
+    "FURB",  # refurb
+    "G",     # flake8-logging-format
+    "I",     # isort
+    "ICN",   # flake8-import-conventions
+    "INP",   # flake8-no-pep420
+    "INT",   # flake8-gettext
+    "ISC",   # flake8-implicit-str-concat
+    "N",     # pep8-naming
+    "PERF",  # perflint
+    "PGH",   # pygrep-hooks
+    "PIE",   # flake8-pie
+    "PL",    # Pylint
+    "PTH",   # flake8-use-pathlib
+    "PT",    # flake8-pytest-style
+    "PYI",   # flake8-pyi
+    "RET",   # flake8-return
+    "RSE",   # flake8-raise
+    "RUF",   # Ruff-specific rules
+    "S",     # flake8-bandit
+    "SIM",   # flake8-simplify
+    "SLOT",  # flake8-slots
+    "SLF",   # flake8-self
+    "T10",   # flake8-debugger
+    "T20",   # flake8-print
+    "TID",   # flake8-tidy-imports
+    "TRY",   # tryceratops
+    "UP",    # pyupgrade
+    "W",     # pycodestyle warnings
+    "YTT",   # flake8-2020
+]
+
+ignore = [
+    "ANN204",  # missing-return-type-special-method
+    "COM812",  # missing-trailing-comma
+    "D100",    # missing docstring in public module
+    "D104",    # missing docstring in public package
+    "D106",    # missing docstring in public nested class
+    "D212",    # multi-line-summary-first-line
+    "ISC001",  # single-line-implicit-string-concatenation
+    "PLR0913", # too-many-arguments
+    "W191",    # indentation contains tabs
+]
+
+fixable = ["ALL"]
+unfixable = []
+
+[lint.extend-per-file-ignores]
+"test*.py" = [
+    "ANN",    # flake8-annotations
+    "INP001", # implicit-namespace-package
+    "N802",   # invalid-function-name
+    "S",      # flake8-bandit
+    "S301",   # suspicious-pickle-usage
+    "SLF001", # private-member-access
+]
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.pydoclint]
+ignore-one-line-docstrings = true
+
+[lint.pycodestyle]
+max-doc-length = 80
