@@ -55,7 +55,7 @@ def main(
             help='TCP port to listen on.',
             rich_help_panel='Networking',
         ),
-    ] = 8000,
+    ] = 2000,
     verbose: Annotated[  # noqa: FBT002
         bool,
         typer.Option(
