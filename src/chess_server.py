@@ -1,12 +1,12 @@
 import ipaddress
 import socket
+from typing import Annotated
 
 import chess
 import typer
-from rich import print
-from typing_extensions import Annotated
+from rich import print  # noqa: A004
 
-from src.validation import STRIKE, COMMENT
+from src.validation import COMMENT, STRIKE
 
 app = typer.Typer(
     add_completion=False,
@@ -19,16 +19,18 @@ def validate_interface(value: str) -> str:
     try:
         ipaddress.ip_address(value)
     except ValueError as exc:  # pragma: no cover - CLI validation
+        msg = "Interface must be a valid IPv4 or IPv6 address."
         raise typer.BadParameter(
-            "Interface must be a valid IPv4 or IPv6 address."
+            msg
         ) from exc
     return value
 
 
 def validate_port(value: int) -> int:
     """Ensure the port is within the TCP user range."""
-    if not (1 <= value <= 65535):
-        raise typer.BadParameter("Port must be between 1 and 65535.")
+    if not (1 <= value <= 65535):  # noqa: PLR2004
+        msg = "Port must be between 1 and 65535."
+        raise typer.BadParameter(msg)
     return value
 
 
@@ -56,7 +58,7 @@ def main(
             rich_help_panel="Networking",
         ),
     ] = 8000,
-    verbose: Annotated[
+    verbose: Annotated[  # noqa: FBT002
         bool,
         typer.Option(
             "--verbose",
