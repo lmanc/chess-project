@@ -33,7 +33,7 @@ def validate_port(value: int) -> int:
 
 
 @app.command()
-def main(
+def run(
     interface: Annotated[
         str,
         typer.Option(
@@ -66,6 +66,7 @@ def main(
         ),
     ] = False,
 ) -> None:
+    """Start the chess server and process moves from a single client."""
     board = chess.Board()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
