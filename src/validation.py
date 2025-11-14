@@ -1,5 +1,7 @@
 import ipaddress
 import re
+from pathlib import Path
+from typing import Optional
 
 import typer
 
@@ -22,5 +24,16 @@ def validate_port(value: int) -> int:
     """Ensure the port is within the TCP user range."""
     if not (1 <= value <= 65535):  # noqa: PLR2004
         msg = 'Port must be between 1 and 65535.'
+        raise typer.BadParameter(msg)
+    return value
+
+
+def validate_filename(value: Path | None) -> Path | None:
+    """Ensure the provided filename exists and is a file."""
+    if value is None:
+        return None
+    value = value.expanduser().resolve()
+    if not value.is_file():
+        msg = 'Filename must point to an existing file.'
         raise typer.BadParameter(msg)
     return value
