@@ -14,7 +14,7 @@ def validate_interface(value: str) -> str:
     """Ensure the provided interface value is a valid IP address."""
     try:
         ipaddress.ip_address(value)
-    except ValueError as exc:  # pragma: no cover - CLI validation
+    except ValueError as exc:
         msg = 'Interface must be a valid IPv4 or IPv6 address.'
         raise typer.BadParameter(msg) from exc
     return value
