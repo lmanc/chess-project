@@ -1,9 +1,10 @@
 import socket
+import sys
 from typing import Annotated
 
 import chess
 import typer
-from rich import print  # noqa: A004
+from loguru import logger
 
 from src.validation import COMMENT, STRIKE, validate_interface, validate_port
 
@@ -42,40 +43,59 @@ def run(
         typer.Option(
             '--verbose',
             '-v',
-            help='Enable verbose logging (placeholder).',
+            help='Enable verbose logging.',
             show_default=False,
         ),
     ] = False,
 ) -> None:
     """Start the chess server and process moves from a single client."""
+    logger.remove()
+    logger.add(sys.stderr, level="DEBUG" if verbose else "INFO")
+
+    if verbose:
+        logger.debug("Verbose mode enabled.")
+
     board = chess.Board()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        if verbose:
-            print(':loud_sound: Verbose mode enabled (placeholder).')
-        print(f'Binding on {interface}:{port}')
-        s.bind((interface, port))
-        print(f'Listening on {interface}:{port}')
-        s.listen()
-        conn, addr = s.accept()
-        with conn, conn.makefile('r', encoding='utf-8') as f:
-            print(f':globe_with_meridians: Connected by {addr}')
-            for line in f:
-                line = line.strip()
-                if STRIKE.fullmatch(line):
-                    move = line.replace('-', '')
-                    move = chess.Move.from_uci(move)
-                    if board.is_legal(move):
-                        print('legal move')
-                        board.push(move)
-                    else:
-                        print('illegal move')
-                elif COMMENT.fullmatch(line):
-                    conn.sendall(b'comment')
-                else:
-                    conn.sendall(b'scan error')
 
+        logger.debug("Binding on {}:{}", interface, port)
+        s.bind((interface, port))
+
+        logger.info("Listening on {}:{}", interface, port)
+        s.listen()
+
+        conn, addr = s.accept()
+
+        with conn, conn.makefile('r', encoding='utf-8') as f:
+            logger.info("Connected by {}", addr)
+
+            for raw in f:
+                line = raw.strip()
+                logger.debug("<< {}", line)
+
+                if STRIKE.fullmatch(line):
+                    move = chess.Move.from_uci(line.replace('-', ''))
+
+                    if board.is_legal(move):
+                        board.push(move)
+                        response = "legal move"
+                    else:
+                        response = "Invalid move"
+
+                    _reply(conn, response)
+                    logger.debug(">> {}", response)
+                elif COMMENT.fullmatch(line):
+                    _reply(conn, "OK")
+                    logger.debug(">> OK")
+                else:
+                    _reply(conn, "scan error")
+                    logger.debug(">> scan error")
+
+
+def _reply(conn: socket.socket, text: str) -> None:
+    conn.sendall((text + "\n").encode("utf-8"))
 
 if __name__ == '__main__':
     app()
