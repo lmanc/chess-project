@@ -47,7 +47,7 @@ def run(
             rich_help_panel='Gameplay',
         ),
     ] = None,
-    verbose: Annotated[
+    verbose: Annotated[  # noqa: FBT002
         bool,
         typer.Option(
             '--verbose',
