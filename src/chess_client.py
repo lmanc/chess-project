@@ -1,8 +1,10 @@
 import socket
+import sys
 from pathlib import Path
 from typing import Annotated
 
 import typer
+from loguru import logger
 
 from src.validation import validate_filename, validate_interface, validate_port
 
@@ -61,27 +63,19 @@ def run(
     # TODO: add proper error handling for socket errors
     # TODO: support streaming from --filename
     # TODO: print server responses asynchronously
+    logger.remove()
+    logger.add(sys.stderr, level="DEBUG" if verbose else "INFO")
 
-    if filename is not None:
-        typer.echo(':warning: --filename is a placeholder and is ignored for now.')
     if verbose:
-        typer.echo(':loud_sound: Verbose mode enabled (placeholder).')
+        logger.debug("Verbose mode enabled.")
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        logger.info("Connecting to {}:{}", interface, port)
         sock.connect((interface, port))
-        typer.echo(f'Connected to {interface}:{port}.')
 
         while True:
-            try:
-                line = input('')
-            except (EOFError, KeyboardInterrupt):
-                typer.echo('\nDisconnecting.')
-                break
-
-            msg = line.strip()
-            if not msg:
-                continue
-            sock.sendall(f'{msg}\n'.encode())
+            line = input('')
+            sock.sendall(f'{line.strip()}\n'.encode())
 
 
 if __name__ == '__main__':
