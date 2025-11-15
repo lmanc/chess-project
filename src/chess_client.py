@@ -75,8 +75,18 @@ def run(
         sock.connect((interface, port))
 
         while True:
-            line = input('')
+            try:
+                line = input('')
+            except (EOFError, KeyboardInterrupt):
+                typer.echo('\nDisconnecting.')
+                break
+
+            msg = line.strip()
+
+            if not msg:
+                continue
             sock.sendall(f'{line.strip()}\n'.encode())
+
             data = sock.recv(4096)
             if not data:
                 break
