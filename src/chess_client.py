@@ -59,13 +59,26 @@ def run(
             show_default=False,
         ),
     ] = False,
+    log_file: Annotated[
+        Path | None,
+        typer.Option(
+            '--log-file',
+            '-l',
+            help='Write logs to a file.',
+            show_default=False,
+        ),
+    ] = None,
 ) -> None:
     """Connect to the chess server and optionally replay a moves file."""
     # TODO: add proper error handling for socket errors
     # TODO: support streaming from --filename
     # TODO: print server responses asynchronously
     logger.remove()
-    logger.add(sys.stderr, level="DEBUG" if verbose else "INFO")
+    level = "DEBUG" if verbose else "INFO"
+    if log_file is not None:
+        logger.add(str(log_file), level=level)
+    else:
+        logger.add(sys.stderr, level=level)
 
     if verbose:
         logger.debug("Verbose mode enabled.")
