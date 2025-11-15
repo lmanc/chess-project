@@ -6,7 +6,14 @@ import chess
 import typer
 from loguru import logger
 
-from src.validation import COMMENT, STRIKE, validate_interface, validate_port
+from src.validation import (
+    COMMENT,
+    STRIKE,
+    Command,
+    parse_command,
+    validate_interface,
+    validate_port,
+)
 
 app = typer.Typer(
     add_completion=False,
@@ -86,6 +93,10 @@ def run(
 
                     _reply(conn, response)
                     logger.debug(">> {}", response)
+                elif parse_command(line) == Command.DISPLAY_BOARD:
+                    board_txt = str(board)
+                    _reply(conn, board_txt)
+                    logger.debug('>> (board)\n{}', board_txt)
                 elif COMMENT.fullmatch(line):
                     _reply(conn, "OK")
                     logger.debug(">> OK")

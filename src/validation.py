@@ -1,12 +1,18 @@
 import ipaddress
 import re
+from enum import StrEnum
 from pathlib import Path
 
 import typer
 
 STRIKE = re.compile(r'[a-h][1-8]-[a-h][1-8]')
 COMMENT = re.compile(r'//.*')
-COMMAND = ''
+
+
+class Command(StrEnum):
+    """Supported protocol commands."""
+
+    DISPLAY_BOARD = 'display_board'
 
 
 def validate_interface(value: str) -> str:
@@ -36,3 +42,11 @@ def validate_filename(value: Path | None) -> Path | None:
         msg = 'Filename must point to an existing file.'
         raise typer.BadParameter(msg)
     return value
+
+
+def parse_command(value: str) -> Command | None:
+    """Return a Command if the line matches a known command, else None."""
+    try:
+        return Command(value)
+    except ValueError:
+        return None
