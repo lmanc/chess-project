@@ -5,6 +5,7 @@ from typing import Annotated
 
 import typer
 from loguru import logger
+from rich import print
 
 from src.validation import validate_filename, validate_interface, validate_port
 
@@ -76,6 +77,10 @@ def run(
         while True:
             line = input('')
             sock.sendall(f'{line.strip()}\n'.encode())
+            data = sock.recv(4096)
+            if not data:
+                break
+            print(data.decode('utf-8', errors='replace'), end='')
 
 
 if __name__ == '__main__':
