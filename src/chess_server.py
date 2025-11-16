@@ -67,60 +67,64 @@ def run(
 ) -> None:
     """Start the chess server and process moves from a single client."""
     logger.remove()
-    level = "DEBUG" if verbose else "INFO"
+    level = 'DEBUG' if verbose else 'INFO'
     if log_file is not None:
         logger.add(str(log_file), level=level)
     else:
         logger.add(sys.stderr, level=level)
 
     if verbose:
-        logger.debug("Verbose mode enabled.")
+        logger.debug('🔊 Verbose mode enabled')
 
     board = chess.Board()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        logger.debug("Binding on {}:{}", interface, port)
+        logger.debug('🔌 Binding on {}:{}', interface, port)
         s.bind((interface, port))
+        logger.debug('✅ Bound on {}:{}', interface, port)
 
-        logger.info("Listening on {}:{}", interface, port)
+        logger.info('🛰️ Listening on {}:{}', interface, port)
         s.listen()
 
         conn, addr = s.accept()
 
         with conn, conn.makefile('r', encoding='utf-8') as f:
-            logger.info("Connected by {}", addr)
+            logger.info('🌐 Client connected: {}', addr)
 
             for raw in f:
                 line = raw.strip()
-                logger.debug("<< {}", line)
+                logger.debug('<< {}', line)
 
                 if STRIKE.fullmatch(line):
                     move = chess.Move.from_uci(line.replace('-', ''))
 
                     if board.is_legal(move):
                         board.push(move)
-                        response = "legal move"
+                        response = 'legal move'
                     else:
-                        response = "Invalid move"
+                        response = 'Invalid move'
 
                     _reply(conn, response)
-                    logger.debug(">> {}", response)
+                    logger.debug('>> {}', response)
                 elif parse_command(line) == Command.DISPLAY_BOARD:
                     board_txt = str(board)
                     _reply(conn, board_txt)
                     logger.debug('>> (board)\n{}', board_txt)
                 elif COMMENT.fullmatch(line):
-                    _reply(conn, "OK")
-                    logger.debug(">> OK")
+                    _reply(conn, 'OK')
+                    logger.debug('>> OK')
                 else:
-                    _reply(conn, "scan error")
-                    logger.debug(">> scan error")
+                    _reply(conn, 'scan error')
+                    logger.debug('>> scan error')
+
+            logger.info('👋 Client disconnected')
 
 
 def _reply(conn: socket.socket, text: str) -> None:
-    conn.sendall((text + "\n").encode("utf-8"))
+    conn.sendall(text.encode('utf-8'))
+
 
 if __name__ == '__main__':
     app()

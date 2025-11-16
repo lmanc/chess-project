@@ -5,7 +5,7 @@ from typing import Annotated
 
 import typer
 from loguru import logger
-from rich import print
+from rich import print  # noqa: A004
 
 from src.validation import validate_filename, validate_interface, validate_port
 
@@ -74,36 +74,40 @@ def run(
     # TODO: support streaming from --filename
     # TODO: print server responses asynchronously
     logger.remove()
-    level = "DEBUG" if verbose else "INFO"
+    level = 'DEBUG' if verbose else 'INFO'
     if log_file is not None:
         logger.add(str(log_file), level=level)
     else:
         logger.add(sys.stderr, level=level)
 
     if verbose:
-        logger.debug("Verbose mode enabled.")
+        logger.debug('🔊 Verbose mode enabled')
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        logger.info("Connecting to {}:{}", interface, port)
+        logger.info('🛰️ Connecting to {}:{}', interface, port)
         sock.connect((interface, port))
+        logger.info('✅ Connected')
 
         while True:
             try:
                 line = input('')
             except (EOFError, KeyboardInterrupt):
-                typer.echo('\nDisconnecting.')
+                logger.info('👋 Disconnecting')
                 break
 
             msg = line.strip()
-
             if not msg:
                 continue
-            sock.sendall(f'{line.strip()}\n'.encode())
+            logger.debug('>> {}', msg)
+            sock.sendall(f'{msg}\n'.encode())
 
             data = sock.recv(4096)
             if not data:
+                logger.info('⛔ Server closed the connection')
                 break
-            print(data.decode('utf-8', errors='replace'), end='')
+            text = data.decode('utf-8', errors='replace')
+            logger.debug('<< {}', text)
+            print(text)
 
 
 if __name__ == '__main__':
