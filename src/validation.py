@@ -5,7 +5,7 @@ from pathlib import Path
 
 import typer
 
-STRIKE = re.compile(r'[a-h][1-8]-[a-h][1-8]')
+STRIKE = re.compile(r'[a-h][1-8]-[a-h][1-8]', re.IGNORECASE)
 COMMENT = re.compile(r'//.*')
 
 
