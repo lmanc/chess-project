@@ -7,14 +7,8 @@ import chess
 import typer
 from loguru import logger
 
-from src.validation import (
-    COMMENT,
-    STRIKE,
-    Command,
-    parse_command,
-    validate_interface,
-    validate_port,
-)
+from src.protocol import handle_line
+from src.validation import validate_interface, validate_port
 
 app = typer.Typer(
     add_completion=False,
@@ -96,28 +90,9 @@ def run(
             for raw in f:
                 line = raw.strip()
                 logger.debug('<< {}', line)
-
-                if STRIKE.fullmatch(line):
-                    move = chess.Move.from_uci(line.replace('-', ''))
-
-                    if board.is_legal(move):
-                        board.push(move)
-                        response = 'legal move'
-                    else:
-                        response = 'Invalid move'
-
-                    _reply(conn, response)
-                    logger.debug('>> {}', response)
-                elif parse_command(line) == Command.DISPLAY_BOARD:
-                    board_txt = str(board)
-                    _reply(conn, board_txt)
-                    logger.debug('>> (board)\n{}', board_txt)
-                elif COMMENT.fullmatch(line):
-                    _reply(conn, 'OK')
-                    logger.debug('>> OK')
-                else:
-                    _reply(conn, 'scan error')
-                    logger.debug('>> scan error')
+                response = handle_line(board, line)
+                _reply(conn, response)
+                logger.debug('>> {}', response)
 
             logger.info('👋 Client disconnected')
 
