@@ -1,6 +1,6 @@
 import chess
 
-from src.constants import LETTERS, SEPARATOR
+from src.constants import LETTERS, PIECE_NAME, SEPARATOR
 from src.validation import COMMENT, STRIKE, Command, parse_command
 
 
@@ -10,9 +10,19 @@ def handle_line(board: chess.Board, line: str) -> str:
 
     if STRIKE.fullmatch(line):
         move = chess.Move.from_uci(line.replace('-', ''))
+
         if board.is_legal(move):
+            move_no = board.fullmove_number
+            piece = board.piece_at(move.from_square)
+            color = 'white' if piece.color == chess.WHITE else 'black'
+            name = PIECE_NAME[piece.piece_type]
+            src = chess.square_name(move.from_square)
+            dst = chess.square_name(move.to_square)
+
             board.push(move)
-            return 'legal move'
+
+            return f"{move_no}. {color.title()} {name} moves from {src} to {dst}"
+
         return 'Invalid move'
 
     if COMMENT.fullmatch(line):
