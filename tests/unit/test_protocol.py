@@ -1,3 +1,5 @@
+# ruff: noqa: PLR2004
+
 import chess
 
 from src.protocol import display_board, handle_line
@@ -9,6 +11,16 @@ def test_handle_line_legal_move() -> None:
     out = handle_line(board, 'e2-e4')
     assert out == '1. White pawn moves from e2 to e4'
     assert len(board.move_stack) == 1
+
+
+def test_handle_line_capture() -> None:
+    """Perform a capture, updates the board, and returns a formatted message."""
+    board = chess.Board()
+    handle_line(board, 'e2-e4')
+    handle_line(board, 'd7-d5')
+    out = handle_line(board, 'e4-d5')
+    assert out == '2. White pawn on e4 takes black pawn on d5'
+    assert len(board.move_stack) == 3
 
 
 def test_handle_line_illegal_move() -> None:
