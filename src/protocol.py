@@ -1,5 +1,6 @@
 import chess
 
+from src.constants import LETTERS, SEPARATOR
 from src.validation import COMMENT, STRIKE, Command, parse_command
 
 
@@ -19,6 +20,22 @@ def handle_line(board: chess.Board, line: str) -> str:
 
     cmd = parse_command(line)
     if cmd == Command.DISPLAY_BOARD:
-        return str(board)
+        return display_board(board)
 
     return 'scan error'
+
+
+def display_board(board: chess.Board) -> str:
+    """Return an ASCII board snapshot."""
+    s = str(board).splitlines()
+    s = [f'{i} {line}' for i, line in zip(range(8, 0, -1), s, strict=True)]
+    s = [' | '.join(line.replace(' ', '')) + ' |' for line in s]
+
+    temp = []
+    for line in s:
+        temp.extend([SEPARATOR, line])
+    temp.append(SEPARATOR)
+
+    s = [LETTERS, *temp, LETTERS]
+
+    return '\n'.join(s).replace('.', ' ')
