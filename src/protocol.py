@@ -19,9 +19,26 @@ def handle_line(board: chess.Board, line: str) -> str:
             src = chess.square_name(move.from_square)
             dst = chess.square_name(move.to_square)
 
+            if board.is_capture(move):
+                captured = board.piece_at(move.to_square)
+                if captured is None and board.is_en_passant(move):
+                    capture_sq = chess.square(
+                        chess.square_file(move.to_square),
+                        chess.square_rank(move.from_square),
+                    )
+                    captured = board.piece_at(capture_sq)
+                captured_color = 'white' if captured.color == chess.WHITE else 'black'
+                captured_name = PIECE_NAME[captured.piece_type]
+                message = (
+                    f"{move_no}. {color.title()} {name} on {src} "
+                    f"takes {captured_color} {captured_name} on {dst}"
+                )
+            else:
+                message = f"{move_no}. {color.title()} {name} moves from {src} to {dst}"
+
             board.push(move)
 
-            return f"{move_no}. {color.title()} {name} moves from {src} to {dst}"
+            return message
 
         return 'Invalid move'
 
