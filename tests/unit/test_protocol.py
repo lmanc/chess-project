@@ -2,7 +2,8 @@
 
 import chess
 
-from src.protocol import _display_board, process_line
+from src.protocol import process_line
+from src.protocol.core import display_board
 
 
 def test_handle_line_legal_move() -> None:
@@ -53,7 +54,7 @@ def test_handle_line_comment() -> None:
 def test_handle_line_display_board() -> None:
     """Returns ASCII board snapshot for `display_board` command."""
     board = chess.Board()
-    snapshot = _display_board(board)
+    snapshot = display_board(board)
     out = process_line(board, 'display_board')
     assert out == snapshot
 

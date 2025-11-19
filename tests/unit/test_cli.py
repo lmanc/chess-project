@@ -1,7 +1,7 @@
 from typer.testing import CliRunner
 
-from src.chess_client import app as client_app
-from src.chess_server import app as server_app
+from src.cli.chess_client import app as client_app
+from src.cli.chess_server import app as server_app
 
 runner = CliRunner()
 
