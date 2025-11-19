@@ -92,6 +92,7 @@ def run(
                 logger.debug('<< {}', line)
                 response = handle_line(board, line)
                 _reply(conn, response)
+                # TODO: handle multiline responses properly
                 logger.debug('>> {}', response)
 
             logger.info('👋 Client disconnected')
