@@ -43,11 +43,11 @@ def test_strike_regex() -> None:
     assert not STRIKE.fullmatch('a9-a1')
 
 
-def test_comment_regex() -> None:
+def test_comment_regex(valid_comment, invalid_comment) -> None:
     """Matches lines starting with `//` and rejects others."""
     assert COMMENT.fullmatch('//')
-    assert COMMENT.fullmatch('// This is a comment')
-    assert not COMMENT.fullmatch('This is not a comment')
+    assert COMMENT.fullmatch(valid_comment)
+    assert not COMMENT.fullmatch(invalid_comment)
 
 
 def test_validate_filename(tmp_path: Path) -> None:
