@@ -6,7 +6,7 @@ from src.protocol import display_board, handle_line
 
 
 def test_handle_line_legal_move() -> None:
-    """Applies a legal move, updates the board, returns a formatted message."""
+    """Applies a legal move and returns a formatted message."""
     board = chess.Board()
     out = handle_line(board, 'e2-e4')
     assert out == '1. White pawn moves from e2 to e4'
@@ -14,13 +14,25 @@ def test_handle_line_legal_move() -> None:
 
 
 def test_handle_line_capture() -> None:
-    """Perform a capture, updates the board, and returns a formatted message."""
+    """Applies a capture and returns a formatted message."""
     board = chess.Board()
     handle_line(board, 'e2-e4')
     handle_line(board, 'd7-d5')
     out = handle_line(board, 'e4-d5')
     assert out == '2. White pawn on e4 takes black pawn on d5'
     assert len(board.move_stack) == 3
+
+
+def test_handle_line_en_passant() -> None:
+    """Applies an en passant capture and returns a message."""
+    board = chess.Board()
+    handle_line(board, 'e2-e4')
+    handle_line(board, 'd7-d5')
+    handle_line(board, 'e4-e5')
+    handle_line(board, 'f7-f5')
+    out = handle_line(board, 'e5-f6')
+    assert out == '3. White pawn on e5 takes black pawn on f6'
+    assert len(board.move_stack) == 5
 
 
 def test_handle_line_illegal_move() -> None:
