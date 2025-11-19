@@ -4,55 +4,24 @@ from src.constants import LETTERS, PIECE_NAME, SEPARATOR
 from src.validation import COMMENT, STRIKE, Command, parse_command
 
 
-def handle_line(board: chess.Board, line: str) -> str:
+def process_line(board: chess.Board, line: str) -> str:
     """Return the response for an input line and update board if needed."""
     line = line.strip()
 
     if STRIKE.fullmatch(line):
-        move = chess.Move.from_uci(line.replace('-', ''))
-
-        if board.is_legal(move):
-            move_no = board.fullmove_number
-            piece = board.piece_at(move.from_square)
-            color = piece_color(piece)
-            name = PIECE_NAME[piece.piece_type]
-            src = chess.square_name(move.from_square)
-            dst = chess.square_name(move.to_square)
-
-            if board.is_capture(move):
-                captured = board.piece_at(move.to_square)
-                if captured is None and board.is_en_passant(move):
-                    capture_sq = chess.square(
-                        chess.square_file(move.to_square),
-                        chess.square_rank(move.from_square),
-                    )
-                    captured = board.piece_at(capture_sq)
-                captured_color = piece_color(captured)
-                captured_name = PIECE_NAME[captured.piece_type]
-                message = (
-                    f'{move_no}. {color.title()} {name} on {src} '
-                    f'takes {captured_color} {captured_name} on {dst}'
-                )
-            else:
-                message = f'{move_no}. {color.title()} {name} moves from {src} to {dst}'
-
-            board.push(move)
-
-            return message
-
-        return 'Invalid move'
+        return _handle_move(board, line)
 
     if COMMENT.fullmatch(line):
         return 'OK'
 
     cmd = parse_command(line)
     if cmd == Command.DISPLAY_BOARD:
-        return display_board(board)
+        return _display_board(board)
 
     return 'scan error'
 
 
-def display_board(board: chess.Board) -> str:
+def _display_board(board: chess.Board) -> str:
     """Return an ASCII board snapshot."""
     s = str(board).splitlines()
     s = [f'{i} {line}' for i, line in zip(range(8, 0, -1), s, strict=True)]
@@ -68,6 +37,52 @@ def display_board(board: chess.Board) -> str:
     return '\n'.join(s).replace('.', ' ')
 
 
-def piece_color(piece: chess.Piece) -> str:
+def _piece_color(piece: chess.Piece) -> str:
     """Return piece color as a string."""
     return 'white' if piece.color == chess.WHITE else 'black'
+
+
+def _handle_move(board: chess.Board, text: str) -> str:
+    """Apply a UCI move string if legal and return formatted message."""
+    move = chess.Move.from_uci(text.replace('-', ''))
+    if not board.is_legal(move):
+        return 'Invalid move'
+
+    message = _format_move(board, move)
+    board.push(move)
+    return message
+
+
+def _format_move(board: chess.Board, move: chess.Move) -> str:
+    """Format a legal move (capture or normal) without mutating the board."""
+    move_no = board.fullmove_number
+    piece = board.piece_at(move.from_square)
+    color = _piece_color(piece)
+    name = PIECE_NAME[piece.piece_type]
+    src = chess.square_name(move.from_square)
+    dst = chess.square_name(move.to_square)
+
+    if board.is_capture(move):
+        captured, _ = _captured_piece(board, move)
+        captured_color = _piece_color(captured)
+        captured_name = PIECE_NAME[captured.piece_type]
+
+        return (
+            f'{move_no}. {color.title()} {name} on {src} '
+            f'takes {captured_color} {captured_name} on {dst}'
+        )
+
+    return f'{move_no}. {color.title()} {name} moves from {src} to {dst}'
+
+
+def _captured_piece(board: chess.Board, move: chess.Move) -> tuple[chess.Piece, chess.Square]:
+    """Return the captured piece (handles en passant) and its square."""
+    captured = board.piece_at(move.to_square)
+    capture_square = move.to_square
+    if captured is None and board.is_en_passant(move):
+        capture_square = chess.square(
+            chess.square_file(move.to_square),
+            chess.square_rank(move.from_square),
+        )
+        captured = board.piece_at(capture_square)
+    return captured, capture_square

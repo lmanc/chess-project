@@ -7,7 +7,7 @@ import chess
 import typer
 from loguru import logger
 
-from src.protocol import handle_line
+from src.protocol import process_line
 from src.validation import validate_interface, validate_port
 
 app = typer.Typer(
@@ -90,7 +90,7 @@ def run(
             for raw in f:
                 line = raw.strip()
                 logger.debug('<< {}', line)
-                response = handle_line(board, line)
+                response = process_line(board, line)
                 _reply(conn, response)
                 # TODO: handle multiline responses properly
                 logger.debug('>> {}', response)
