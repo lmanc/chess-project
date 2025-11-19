@@ -14,7 +14,7 @@ def handle_line(board: chess.Board, line: str) -> str:
         if board.is_legal(move):
             move_no = board.fullmove_number
             piece = board.piece_at(move.from_square)
-            color = 'white' if piece.color == chess.WHITE else 'black'
+            color = piece_color(piece)
             name = PIECE_NAME[piece.piece_type]
             src = chess.square_name(move.from_square)
             dst = chess.square_name(move.to_square)
@@ -27,14 +27,14 @@ def handle_line(board: chess.Board, line: str) -> str:
                         chess.square_rank(move.from_square),
                     )
                     captured = board.piece_at(capture_sq)
-                captured_color = 'white' if captured.color == chess.WHITE else 'black'
+                captured_color = piece_color(captured)
                 captured_name = PIECE_NAME[captured.piece_type]
                 message = (
-                    f"{move_no}. {color.title()} {name} on {src} "
-                    f"takes {captured_color} {captured_name} on {dst}"
+                    f'{move_no}. {color.title()} {name} on {src} '
+                    f'takes {captured_color} {captured_name} on {dst}'
                 )
             else:
-                message = f"{move_no}. {color.title()} {name} moves from {src} to {dst}"
+                message = f'{move_no}. {color.title()} {name} moves from {src} to {dst}'
 
             board.push(move)
 
@@ -66,3 +66,8 @@ def display_board(board: chess.Board) -> str:
     s = [LETTERS, *temp, LETTERS]
 
     return '\n'.join(s).replace('.', ' ')
+
+
+def piece_color(piece: chess.Piece) -> str:
+    """Return piece color as a string."""
+    return 'white' if piece.color == chess.WHITE else 'black'
