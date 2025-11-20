@@ -1,5 +1,5 @@
 # ruff: noqa: PLR2004
-
+import chess
 
 from src.protocol import process_line
 from src.protocol.core import display_board
@@ -58,6 +58,14 @@ def test_handle_line_black_queenside_castling(black_castling_board) -> None:
     out = process_line(black_castling_board, 'e8-c8')
     assert out == '1. Black king does a big castling from e8 to c8'
     assert len(black_castling_board.move_stack) == 1
+
+
+def test_handle_line_check_suffix() -> None:
+    """Adds check suffix when the move gives check."""
+    board = chess.Board('4k3/8/8/8/8/8/8/R3K3 w - - 0 1')
+    out = process_line(board, 'a1-a8')
+    assert out == '1. White rook moves from a1 to a8. Check'
+    assert len(board.move_stack) == 1
 
 
 def test_handle_line_illegal_move(board) -> None:
