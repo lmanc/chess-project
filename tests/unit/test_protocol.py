@@ -1,5 +1,6 @@
 # ruff: noqa: PLR2004
 
+
 from src.protocol import process_line
 from src.protocol.core import display_board
 
@@ -29,6 +30,34 @@ def test_handle_line_en_passant(board) -> None:
     out = process_line(board, 'e5-f6')
     assert out == '3. White pawn on e5 takes black pawn on f6'
     assert len(board.move_stack) == 5
+
+
+def test_handle_line_white_kingside_castling(white_castling_board) -> None:
+    """Applies white kingside castling and returns a formatted message."""
+    out = process_line(white_castling_board, 'e1-g1')
+    assert out == '1. White king does a little castling from e1 to g1'
+    assert len(white_castling_board.move_stack) == 1
+
+
+def test_handle_line_white_queenside_castling(white_castling_board) -> None:
+    """Applies white queenside castling and returns a formatted message."""
+    out = process_line(white_castling_board, 'e1-c1')
+    assert out == '1. White king does a big castling from e1 to c1'
+    assert len(white_castling_board.move_stack) == 1
+
+
+def test_handle_line_black_kingside_castling(black_castling_board) -> None:
+    """Applies black kingside castling and returns a formatted message."""
+    out = process_line(black_castling_board, 'e8-g8')
+    assert out == '1. Black king does a little castling from e8 to g8'
+    assert len(black_castling_board.move_stack) == 1
+
+
+def test_handle_line_black_queenside_castling(black_castling_board) -> None:
+    """Applies black queenside castling and returns a formatted message."""
+    out = process_line(black_castling_board, 'e8-c8')
+    assert out == '1. Black king does a big castling from e8 to c8'
+    assert len(black_castling_board.move_stack) == 1
 
 
 def test_handle_line_illegal_move(board) -> None:
