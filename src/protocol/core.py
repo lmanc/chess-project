@@ -41,6 +41,13 @@ def format_move(board: chess.Board, move: chess.Move) -> str:
     src = chess.square_name(move.from_square)
     dst = chess.square_name(move.to_square)
 
+    if board.is_castling(move):
+        side = 'little' if dst[0] == 'g' else 'big'
+        return (
+            f'{move_no}. {color.title()} king does a '
+            f'{side} castling from {src} to {dst}'
+        )
+
     if board.is_capture(move):
         captured, _ = captured_piece(board, move)
         captured_color = piece_color(captured)
