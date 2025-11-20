@@ -28,6 +28,12 @@ def handle_move(board: chess.Board, text: str) -> str:
         return 'Invalid move'
 
     message = format_move(board, move)
+
+    future = board.copy()
+    future.push(move)
+    if future.is_check():
+        message += '. Check'
+
     board.push(move)
     return message
 
