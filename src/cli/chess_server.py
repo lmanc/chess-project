@@ -7,7 +7,7 @@ import chess
 import typer
 from loguru import logger
 
-from src.protocol import process_line
+from src.protocol import GameOver, process_line
 from src.validation import validate_interface, validate_port
 
 app = typer.Typer(
@@ -90,7 +90,14 @@ def run(
             for raw in f:
                 line = raw.strip()
                 logger.debug('<< {}', line)
-                response = process_line(board, line)
+                try:
+                    response = process_line(board, line)
+                except GameOver as exc:
+                    response = str(exc)
+                    _reply(conn, response)
+                    logger.debug('>> {}', response)
+                    logger.info('🏁 Game over, closing connection')
+                    break
                 _reply(conn, response)
                 # TODO: handle multiline responses properly
                 logger.debug('>> {}', response)

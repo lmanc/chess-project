@@ -4,6 +4,10 @@ from src.constants import LETTERS, PIECE_NAME, SEPARATOR
 from src.validation import COMMENT, STRIKE, Command, parse_command
 
 
+class GameOver(Exception):  # noqa: N818
+    """Signal that the game has ended (e.g., checkmate)."""
+
+
 def process_line(board: chess.Board, line: str) -> str:
     """Return the response for an input line and update board if needed."""
     line = line.strip()
@@ -28,9 +32,14 @@ def handle_move(board: chess.Board, text: str) -> str:
         return 'Invalid move'
 
     message = format_move(board, move)
+    mover_color = piece_color(board.piece_at(move.from_square))
 
     future = board.copy()
     future.push(move)
+    if future.is_checkmate():
+        board.push(move)
+        msg = f'{message}. Checkmate, {mover_color} wins'
+        raise GameOver(msg)
     if future.is_check():
         message += '. Check'
 

@@ -1,3 +1,3 @@
-from .core import process_line
+from .core import GameOver, process_line
 
-__all__ = ['process_line']
+__all__ = ['GameOver', 'process_line']
