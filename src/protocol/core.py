@@ -56,10 +56,8 @@ def format_move(board: chess.Board, move: chess.Move) -> str:
 
     if board.is_castling(move):
         side = 'little' if dst[0] == 'g' else 'big'
-        return (
-            f'{move_no}. {color.title()} king does a '
-            f'{side} castling from {src} to {dst}'
-        )
+
+        return f'{move_no}. {color.title()} king does a {side} castling from {src} to {dst}'
 
     if board.is_capture(move):
         captured, _ = captured_piece(board, move)
@@ -67,8 +65,8 @@ def format_move(board: chess.Board, move: chess.Move) -> str:
         captured_name = PIECE_NAME[captured.piece_type]
 
         return (
-            f'{move_no}. {color.title()} {name} on {src} '
-            f'takes {captured_color} {captured_name} on {dst}'
+            f'{move_no}. {color.title()} {name} on {src} takes {captured_color} {captured_name} '
+            f'on {dst}'
         )
 
     return f'{move_no}. {color.title()} {name} moves from {src} to {dst}'
