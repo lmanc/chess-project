@@ -55,7 +55,7 @@ def run(
         typer.Option(
             '--verbose',
             '-v',
-            help='Enable verbose logging (placeholder).',
+            help='Enable verbose logging.',
             show_default=False,
         ),
     ] = False,
