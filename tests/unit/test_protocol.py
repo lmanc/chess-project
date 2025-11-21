@@ -1,7 +1,8 @@
 # ruff: noqa: PLR2004
 import chess
+import pytest
 
-from src.protocol import process_line
+from src.protocol import GameOver, process_line
 from src.protocol.core import display_board
 
 
@@ -66,6 +67,19 @@ def test_handle_line_check_suffix() -> None:
     out = process_line(board, 'a1-a8')
     assert out == '1. White rook moves from a1 to a8. Check'
     assert len(board.move_stack) == 1
+
+
+def test_handle_line_checkmate(board) -> None:
+    """Raises game over when the move gives checkmate."""
+    process_line(board, 'e2-e4')
+    process_line(board, 'e7-e5')
+    process_line(board, 'd1-h5')
+    process_line(board, 'b8-c6')
+    process_line(board, 'f1-c4')
+    process_line(board, 'g8-f6')
+    with pytest.raises(GameOver) as excinfo:
+        process_line(board, 'h5-f7')
+    assert 'Checkmate, white wins' in str(excinfo.value)
 
 
 def test_handle_line_illegal_move(board) -> None:
