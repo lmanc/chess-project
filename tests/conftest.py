@@ -4,7 +4,7 @@ from chess import Board
 
 @pytest.fixture
 def board() -> Board:
-    """Provide a new `Board`."""
+    """Provide a new board."""
     return Board()
 
 
