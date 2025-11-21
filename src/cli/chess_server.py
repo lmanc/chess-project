@@ -92,8 +92,8 @@ def run(
                 logger.debug('<< {}', line)
                 try:
                     response = process_line(board, line)
-                except GameOver as exc:
-                    response = str(exc)
+                except GameOver as e:
+                    response = str(e)
                     _reply(conn, response)
                     logger.debug('>> {}', response)
                     logger.info('🏁 Game over, closing connection')

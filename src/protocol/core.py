@@ -32,18 +32,16 @@ def handle_move(board: chess.Board, text: str) -> str:
         return 'Invalid move'
 
     message = format_move(board, move)
-    mover_color = piece_color(board.piece_at(move.from_square))
-
-    future = board.copy()
-    future.push(move)
-    if future.is_checkmate():
-        board.push(move)
-        msg = f'{message}. Checkmate, {mover_color} wins'
-        raise GameOver(msg)
-    if future.is_check():
-        message += '. Check'
+    mover_color = 'white' if board.turn == chess.WHITE else 'black'
 
     board.push(move)
+
+    if board.is_checkmate():
+        msg = f'{message}. Checkmate, {mover_color} wins'
+        raise GameOver(msg)
+    if board.is_check():
+        message += '. Check'
+
     return message
 
 
