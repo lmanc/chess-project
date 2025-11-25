@@ -111,7 +111,7 @@ def run(
 
 
 def _reply(sock: socket.socket, text: str) -> None:
-    sock.sendall(f'{text}\n\n'.encode('utf-8'))
+    sock.sendall(f'{text}\n\n'.encode())
 
 
 if __name__ == '__main__':
