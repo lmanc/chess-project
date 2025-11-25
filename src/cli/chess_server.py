@@ -1,3 +1,4 @@
+import ipaddress
 import socket
 import sys
 from pathlib import Path
@@ -72,41 +73,46 @@ def run(
 
     board = chess.Board()
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    ip = ipaddress.ip_address(interface)
+    family = socket.AF_INET6 if ip.version == 6 else socket.AF_INET  # noqa: PLR2004
+    bind_addr = (interface, port, 0, 0) if ip.version == 6 else (interface, port)  # noqa: PLR2004
 
-        logger.debug('🔌 Binding on {}:{}', interface, port)
-        s.bind((interface, port))
+    with socket.socket(family, socket.SOCK_STREAM) as listener:
+        listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        logger.debug('🔌 Binding on {}:{} ({})', interface, port, family.name)
+        listener.bind(bind_addr)
         logger.debug('✅ Bound on {}:{}', interface, port)
 
         logger.info('🛰️ Listening on {}:{}', interface, port)
-        s.listen()
+        listener.listen()
 
-        conn, addr = s.accept()
+        sock, addr = listener.accept()
 
-        with conn, conn.makefile('r', encoding='utf-8') as f:
+        with sock, sock.makefile('r', encoding='utf-8') as fh:
             logger.info('🌐 Client connected: {}', addr)
 
-            for raw in f:
+            for raw in fh:
                 line = raw.strip()
                 logger.debug('<< {}', line)
                 try:
                     response = process_line(board, line)
                 except GameOver as e:
                     response = str(e)
-                    _reply(conn, response)
+                    _reply(sock, response)
                     logger.debug('>> {}', response)
                     logger.info('🏁 Game over, closing connection')
                     break
-                _reply(conn, response)
+                _reply(sock, response)
                 # TODO: handle multiline responses properly
                 logger.debug('>> {}', response)
 
             logger.info('👋 Client disconnected')
 
 
-def _reply(conn: socket.socket, text: str) -> None:
-    conn.sendall(text.encode('utf-8'))
+def _reply(sock: socket.socket, text: str) -> None:
+    # Use a blank line as a simple message terminator for the client reader.
+    sock.sendall(f'{text}\n\n'.encode('utf-8'))
 
 
 if __name__ == '__main__':

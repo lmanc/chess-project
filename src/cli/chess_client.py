@@ -1,7 +1,8 @@
+import ipaddress
 import socket
 import sys
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, TextIO
 
 import typer
 from loguru import logger
@@ -83,9 +84,19 @@ def run(
     if verbose:
         logger.debug('🔊 Verbose mode enabled')
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        logger.info('🛰️ Connecting to {}:{}', interface, port)
-        sock.connect((interface, port))
+    ip = ipaddress.ip_address(interface)
+    family = socket.AF_INET6 if ip.version == 6 else socket.AF_INET  # noqa: PLR2004
+    server_addr = (interface, port, 0, 0) if ip.version == 6 else (interface, port)  # noqa: PLR2004
+
+    with (
+        socket.socket(family, socket.SOCK_STREAM) as sock,
+        sock.makefile(
+            'r',
+            encoding='utf-8',
+        ) as fh,
+    ):
+        logger.info('🛰️ Connecting to {}:{} ({})', interface, port, family.name)
+        sock.connect(server_addr)
         logger.info('✅ Connected')
 
         while True:
@@ -101,13 +112,22 @@ def run(
             logger.debug('>> {}', msg)
             sock.sendall(f'{msg}\n'.encode())
 
-            data = sock.recv(4096)
-            if not data:
+            response = _read_message(fh)
+            if response == '':
                 logger.info('⛔ Server closed the connection')
                 break
-            text = data.decode('utf-8', errors='replace')
-            logger.debug('<< {}', text)
-            print(text)
+            logger.debug('<< {}', response)
+            print(response)
+
+
+def _read_message(fh: TextIO) -> str:
+    """Read until a blank line terminator and return the message text."""
+    lines: list[str] = []
+    for line in fh:
+        if line == '\n':
+            break
+        lines.append(line.rstrip('\n'))
+    return '\n'.join(lines)
 
 
 if __name__ == '__main__':
