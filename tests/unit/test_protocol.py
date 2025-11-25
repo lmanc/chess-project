@@ -2,8 +2,7 @@
 import chess
 import pytest
 
-from src.protocol import GameOver, process_line
-from src.protocol.core import display_board
+from src.protocol import GameOver, display_board, process_line
 
 
 def test_handle_line_legal_move(board) -> None:
