@@ -79,9 +79,7 @@ def test_handle_line_checkmate(board) -> None:
     process_line(board, 'g8-f6')
     with pytest.raises(GameOver) as e:
         process_line(board, 'h5-f7')
-    assert str(e.value) == (
-        '4. White queen on h5 takes black pawn on f7. Checkmate, white wins'
-    )
+    assert str(e.value) == '4. White queen on h5 takes black pawn on f7. Checkmate, white wins'
 
 
 def test_handle_line_illegal_move(board) -> None:
