@@ -111,7 +111,6 @@ def run(
 
 
 def _reply(sock: socket.socket, text: str) -> None:
-    # Use a blank line as a simple message terminator for the client reader.
     sock.sendall(f'{text}\n\n'.encode('utf-8'))
 
 
