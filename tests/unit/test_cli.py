@@ -51,8 +51,8 @@ class TestClientCLI:
         assert '--interface' in out
         assert '-p' in out
         assert '--port' in out
-        assert '--filename' in out
         assert '-f' in out
+        assert '--filename' in out
         assert '-v' in out
         assert '--verbose' in out
         assert '-l' in out
