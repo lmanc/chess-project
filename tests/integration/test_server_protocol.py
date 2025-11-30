@@ -51,13 +51,15 @@ def test_move_and_invalid_responses() -> None:
 
 def _connect(port: int) -> socket.socket:
     """Connect to localhost:port with retries and a short timeout."""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(2)
-    for _ in range(50):
+    deadline = time.time() + 2.0  # total time budget
+    while time.time() < deadline:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(0.5)
         try:
             sock.connect(('127.0.0.1', port))
             return sock
-        except (ConnectionRefusedError, ConnectionAbortedError):
+        except (ConnectionRefusedError, ConnectionAbortedError, OSError):
+            sock.close()
             time.sleep(0.02)
     pytest.fail('Could not connect to test server')
 
