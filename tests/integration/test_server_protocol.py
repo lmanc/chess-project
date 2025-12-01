@@ -2,6 +2,7 @@ import errno
 import socket
 import threading
 import time
+from queue import Empty, Queue
 
 import pytest
 
@@ -11,13 +12,7 @@ from src.protocol.core import display_board
 
 def test_display_board_roundtrip() -> None:
     """Server returns the full board snapshot for the display_board command."""
-    port = _free_port()
-    thread = threading.Thread(
-        target=chess_server.run,
-        kwargs={'interface': '127.0.0.1', 'port': port},
-        daemon=True,
-    )
-    thread.start()
+    port, thread = _start_server()
 
     with _connect(port) as sock, sock.makefile('r', encoding='utf-8') as fh:
         sock.sendall(b'display_board\n')
@@ -30,13 +25,7 @@ def test_display_board_roundtrip() -> None:
 
 def test_move_and_invalid_responses() -> None:
     """Server returns formatted moves and rejects unsupported input."""
-    port = _free_port()
-    thread = threading.Thread(
-        target=chess_server.run,
-        kwargs={'interface': '127.0.0.1', 'port': port},
-        daemon=True,
-    )
-    thread.start()
+    port, thread = _start_server()
 
     with _connect(port) as sock, sock.makefile('r', encoding='utf-8') as fh:
         # Legal move
@@ -80,11 +69,31 @@ def _read_message(fh) -> str:
     return '\n'.join(lines)
 
 
-def _free_port() -> int:
-    """Return an ephemeral port number available for binding."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.bind(('127.0.0.1', 0))
-        return sock.getsockname()[1]
+def _start_server() -> tuple[int, threading.Thread]:
+    """Start the chess server and return its bound port and thread."""
+    port_queue: Queue[int] = Queue()
+    ready = threading.Event()
+
+    thread = threading.Thread(
+        target=chess_server.serve,
+        kwargs={
+            'interface': '127.0.0.1',
+            'port': 0,
+            'ready_event': ready,
+            'port_queue': port_queue,
+        },
+        daemon=True,
+    )
+    thread.start()
+
+    if not ready.wait(timeout=2):
+        pytest.fail('Server did not start listening')
+    try:
+        port = port_queue.get_nowait()
+    except Empty:
+        pytest.fail('Server did not report a listening port')
+
+    return port, thread
 
 
 def _new_board():

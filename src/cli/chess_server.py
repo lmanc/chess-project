@@ -2,6 +2,8 @@ import ipaddress
 import socket
 import sys
 from pathlib import Path
+from queue import Queue
+from threading import Event
 from typing import Annotated
 
 import chess
@@ -61,6 +63,18 @@ def run(
     ] = None,
 ) -> None:
     """Start the chess server and process moves from a single client."""
+    serve(interface=interface, port=port, verbose=verbose, log_file=log_file)
+
+
+def serve(
+    interface: str = '127.0.0.1',
+    port: int = 2000,
+    verbose: bool = False,
+    log_file: Path | None = None,
+    ready_event: Event | None = None,
+    port_queue: Queue[int] | None = None,
+) -> None:
+    """Run the TCP listener; extra args are for tests (port discovery, readiness)."""
     logger.remove()
     level = 'DEBUG' if verbose else 'INFO'
     if log_file is not None:
@@ -82,10 +96,15 @@ def run(
 
         logger.debug('🔌 Binding on {}:{} ({})', interface, port, family.name)
         listener.bind(bind_addr)
+        actual_port = listener.getsockname()[1]
         logger.debug('✅ Bound on {}:{}', interface, port)
 
-        logger.info('🛰️ Listening on {}:{}', interface, port)
+        logger.info('🛰️ Listening on {}:{}', interface, actual_port)
         listener.listen()
+        if port_queue is not None:
+            port_queue.put(actual_port)
+        if ready_event is not None:
+            ready_event.set()
 
         sock, addr = listener.accept()
 
