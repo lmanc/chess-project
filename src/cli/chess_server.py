@@ -71,7 +71,6 @@ def serve(
     port: int = 2000,
     verbose: bool = False,
     log_file: Path | None = None,
-    ready_event: Event | None = None,
     port_queue: Queue[int] | None = None,
 ) -> None:
     """Run the TCP listener; extra args are for tests (port discovery, readiness)."""
@@ -101,10 +100,9 @@ def serve(
 
         logger.info('🛰️ Listening on {}:{}', interface, actual_port)
         listener.listen()
+
         if port_queue is not None:
             port_queue.put(actual_port)
-        if ready_event is not None:
-            ready_event.set()
 
         sock, addr = listener.accept()
 

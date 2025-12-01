@@ -2,7 +2,7 @@ import errno
 import socket
 import threading
 import time
-from queue import Empty, Queue
+from queue import Queue
 
 import pytest
 
@@ -72,26 +72,22 @@ def _read_message(fh) -> str:
 def _start_server() -> tuple[int, threading.Thread]:
     """Start the chess server and return its bound port and thread."""
     port_queue: Queue[int] = Queue()
-    ready = threading.Event()
 
     thread = threading.Thread(
         target=chess_server.serve,
         kwargs={
             'interface': '127.0.0.1',
             'port': 0,
-            'ready_event': ready,
             'port_queue': port_queue,
         },
         daemon=True,
     )
     thread.start()
 
-    if not ready.wait(timeout=2):
-        pytest.fail('Server did not start listening')
     try:
-        port = port_queue.get_nowait()
-    except Empty:
-        pytest.fail('Server did not report a listening port')
+        port = port_queue.get(timeout=2)
+    except Exception:
+        pytest.fail('Server did not report a listening port in time')
 
     return port, thread
 
