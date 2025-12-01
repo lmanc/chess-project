@@ -1,3 +1,4 @@
+import errno
 import socket
 import threading
 import time
@@ -58,9 +59,14 @@ def _connect(port: int) -> socket.socket:
         try:
             sock.connect(('127.0.0.1', port))
             return sock
-        except (ConnectionRefusedError, ConnectionAbortedError, OSError):
+        except OSError as e:
+            if e.errno in (errno.ECONNREFUSED, errno.ECONNABORTED, errno.ECONNRESET):
+                print(e)
+                sock.close()
+                time.sleep(0.02)
+                continue
             sock.close()
-            time.sleep(0.02)
+            raise
     pytest.fail('Could not connect to test server')
 
 
