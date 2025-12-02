@@ -1,5 +1,5 @@
 from src.cli.chess_client import _read_message
-from src.protocol.core import display_board
+from src.protocol.core import _display_board
 
 
 def test_display_board_roundtrip(server: int, connect, board) -> None:
@@ -8,7 +8,7 @@ def test_display_board_roundtrip(server: int, connect, board) -> None:
         sock.sendall(b'display_board\n')
         response = _read_message(fh)
 
-    assert response == display_board(board)
+    assert response == _display_board(board)
 
 
 def test_move_and_invalid_responses(server: int, connect) -> None:

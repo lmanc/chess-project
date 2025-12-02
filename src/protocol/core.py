@@ -20,7 +20,7 @@ def process_line(board: chess.Board, line: str) -> str:
 
     cmd = parse_command(line)
     if cmd == Command.DISPLAY_BOARD:
-        return display_board(board)
+        return _display_board(board)
 
     return 'scan error'
 
@@ -90,7 +90,7 @@ def captured_piece(board: chess.Board, move: chess.Move) -> tuple[chess.Piece, c
     return captured, capture_square
 
 
-def display_board(board: chess.Board) -> str:
+def _display_board(board: chess.Board) -> str:
     """Return an ASCII board snapshot."""
     s = str(board).splitlines()
     s = [f'{i} {line}' for i, line in zip(range(8, 0, -1), s, strict=True)]
