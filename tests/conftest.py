@@ -45,10 +45,16 @@ def server():
     """Start the server on a random port and ensure it shuts down cleanly."""
     port_queue: Queue[int] = Queue()
     errors: Queue[BaseException] = Queue()
+    stop_event = threading.Event()
 
     def target():
         try:
-            chess_server.serve(interface='127.0.0.1', port=0, port_queue=port_queue)
+            chess_server.serve(
+                interface='127.0.0.1',
+                port=0,
+                port_queue=port_queue,
+                stop_event=stop_event,
+            )
         except BaseException as exc:  # noqa: BLE001
             errors.put(exc)
 
@@ -62,6 +68,7 @@ def server():
 
     yield port
 
+    stop_event.set()
     thread.join(timeout=2)
     if not errors.empty():
         raise errors.get()

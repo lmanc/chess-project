@@ -19,3 +19,17 @@ def test_move_and_invalid_responses(server: int, connect) -> None:
 
         sock.sendall(b'not a thing\n')
         assert _read_message(fh) == 'scan error'
+
+
+def test_each_client_has_its_own_board(server: int, connect) -> None:
+    """Each client connection has an independent board state."""
+    with connect(server) as first, first.makefile('r', encoding='utf-8') as first_fh:
+        first.sendall(b'e2-e4\n')
+        assert _read_message(first_fh) == '1. White pawn moves from e2 to e4'
+
+        first.sendall(b'e7-e5\n')
+        assert _read_message(first_fh) == '1. Black pawn moves from e7 to e5'
+
+        with connect(server) as second, second.makefile('r', encoding='utf-8') as second_fh:
+            second.sendall(b'e2-e4\n')
+            assert _read_message(second_fh) == '1. White pawn moves from e2 to e4'
