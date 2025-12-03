@@ -74,7 +74,7 @@ def serve(
     port_queue: Queue[int] | None = None,
     stop_event: Event | None = None,
 ) -> None:
-    """Run the TCP listener; extra args are for tests (port discovery, readiness)."""
+    """Run the TCP listener with extra options for testing."""
     logger.remove()
     level = 'DEBUG' if verbose else 'INFO'
     if log_file is not None:
