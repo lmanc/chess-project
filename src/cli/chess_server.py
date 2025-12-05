@@ -20,7 +20,7 @@ app = typer.Typer(
 
 
 @app.command()
-def run(
+def main(
     interface: Annotated[
         str,
         typer.Option(
@@ -63,10 +63,10 @@ def run(
     ] = None,
 ) -> None:
     """Start the chess server and process moves from multiple clients."""
-    serve(interface=interface, port=port, verbose=verbose, log_file=log_file)
+    run_server(interface=interface, port=port, verbose=verbose, log_file=log_file)
 
 
-def serve(
+def run_server(
     interface: str = '127.0.0.1',
     port: int = 2000,
     verbose: bool = False,  # noqa: FBT001, FBT002

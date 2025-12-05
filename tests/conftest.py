@@ -49,7 +49,7 @@ def server():
 
     def target():
         try:
-            chess_server.serve(
+            chess_server.run_server(
                 interface='127.0.0.1',
                 port=0,
                 port_queue=port_queue,
@@ -92,3 +92,13 @@ def connect():
         pytest.fail('Could not connect to test server.')
 
     return _connect
+
+
+@pytest.fixture
+def feeder():
+    """Factory to provide an input feeder callable for the client."""
+    def _make(commands: list[str]):
+        iterator = iter(commands)
+        return iterator.__next__
+
+    return _make

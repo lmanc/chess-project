@@ -1,14 +1,18 @@
 import ipaddress
 import socket
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, TextIO
 
 import typer
 from loguru import logger
 from rich import print  # noqa: A004
+from rich.console import Console
 
 from src.validation import validate_filename, validate_interface, validate_port
+
+err_console = Console(stderr=True)
 
 app = typer.Typer(
     add_completion=False,
@@ -17,7 +21,7 @@ app = typer.Typer(
 
 
 @app.command()
-def run(
+def main(
     interface: Annotated[
         str,
         typer.Option(
@@ -71,6 +75,24 @@ def run(
     ] = None,
 ) -> None:
     """Connect to the chess server and optionally replay a moves file."""
+    run_client(
+        interface=interface,
+        port=port,
+        filename=filename,
+        verbose=verbose,
+        log_file=log_file,
+    )
+
+
+def run_client(
+    interface: str = '127.0.0.1',
+    port: int = 2000,
+    filename: Path | None = None,
+    verbose: bool = False,  # noqa: FBT001, FBT002
+    log_file: Path | None = None,
+    input_func: Callable[[], str] | None = None,
+) -> None:
+    """Connect and run the client REPL; parameterized for tests."""
     # TODO: add proper error handling for socket errors
     # TODO: support streaming from --filename
     # TODO: print server responses asynchronously
@@ -84,40 +106,43 @@ def run(
     if verbose:
         logger.debug('🔊 Verbose mode enabled')
 
+    if input_func is None:
+        input_func = input
+
     ip = ipaddress.ip_address(interface)
     family = socket.AF_INET6 if ip.version == 6 else socket.AF_INET  # noqa: PLR2004
     server_addr = (interface, port, 0, 0) if ip.version == 6 else (interface, port)  # noqa: PLR2004
 
-    with (
-        socket.socket(family, socket.SOCK_STREAM) as sock,
-        sock.makefile(
-            'r',
-            encoding='utf-8',
-        ) as fh,
-    ):
+    with socket.socket(family, socket.SOCK_STREAM) as sock:
         logger.info('🛰️ Connecting to {}:{} ({})', interface, port, family.name)
-        sock.connect(server_addr)
+        try:
+            sock.connect(server_addr)
+        except OSError as exc:
+            err_msg = exc.strerror or str(exc)
+            err_console.print(f'Could not connect to {interface}:{port} {err_msg}')
+            raise typer.Exit(code=1) from exc
         logger.info('✅ Connected')
 
-        while True:
-            try:
-                line = input('')
-            except (EOFError, KeyboardInterrupt):
-                logger.info('👋 Disconnecting')
-                break
+        with sock.makefile('r', encoding='utf-8') as fh:
+            while True:
+                try:
+                    line = input_func()
+                except (EOFError, KeyboardInterrupt, StopIteration):
+                    logger.info('👋 Disconnecting')
+                    break
 
-            msg = line.strip()
-            if not msg:
-                continue
-            logger.debug('>> {}', msg)
-            sock.sendall(f'{msg}\n'.encode())
+                msg = line.strip()
+                if not msg:
+                    continue
+                logger.debug('>> {}', msg)
+                sock.sendall(f'{msg}\n'.encode())
 
-            response = _read_message(fh)
-            if response == '':
-                logger.info('⛔ Server closed the connection')
-                break
-            logger.debug('<< {}', response)
-            print(response)
+                response = _read_message(fh)
+                if response == '':
+                    logger.info('⛔ Server closed the connection')
+                    break
+                logger.debug('<< {}', response)
+                print(response)
 
 
 def _read_message(fh: TextIO) -> str:
